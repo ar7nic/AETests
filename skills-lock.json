@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "playwright-best-practices": {
+      "source": "ar7nic/playwright-bp-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "a1ec3e2c6be82c8cd3b34a41d86f1753e0b36b2b29bba64fd7bd8fbc2cf21030"
+    }
+  }
+}
