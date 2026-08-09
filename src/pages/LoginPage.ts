@@ -26,7 +26,10 @@ export class LoginPage extends BasePage {
     this.page.getByRole('heading', { name: 'Login to your account' }),
   );
 
-  readonly loginEmail: Element = this.el('Login email', this.page.getByTestId('login-email'));
+  readonly loginEmail: Element = this.el(
+    'Login email',
+    this.page.getByTestId('login-email'),
+  );
 
   readonly loginPassword: Element = this.el(
     'Login password',
