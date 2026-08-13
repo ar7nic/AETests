@@ -20,6 +20,7 @@ src/
 ├── components/   reusable UI blocks (NavBar)
 ├── utils/        Element (auto-stepped Locator wrapper) + ElementFactory
 ├── fixtures/     auto-registering DI container; exports `test` and `expect`
+├── api/          thin APIRequestContext clients for fast state setup (AccountApi)
 ├── helpers/      factories for entities a test creates (unique-per-run user)
 └── config/       env + fixed test data (from process.env)
 ```
@@ -79,3 +80,37 @@ automationexercise.com is a slow public demo site; the framework accommodates it
 - **Non-semantic headings.** `ENTER ACCOUNT INFORMATION` / `ACCOUNT CREATED!` /
   `ACCOUNT DELETED!` are CSS-uppercased `<b>`/`<h2>` text, so they are located via
   `getByText` / `data-qa` rather than `getByRole('heading')`.
+
+## Running tests in Docker
+
+Build the image:
+```
+docker build -t aetests .
+```
+
+Run the full suite:
+```
+docker run --rm -v ${PWD}/allure-results:/app/allure-results aetests
+```
+
+Run tests and view the Allure report locally:
+```
+docker compose up --build
+```
+Then open http://localhost:9323 (the `report` service generates the Allure HTML
+and serves it once the `tests` service finishes).
+
+## Continuous integration
+
+Two GitHub Actions workflows live in `.github/workflows/`, both currently
+**manual-trigger only** (`workflow_dispatch`; the push/PR triggers are commented
+out). The test step is non-blocking (`npm test || true`) so reports publish even
+on failures — expected against a flaky public demo site.
+
+- **`playwright.yml`** — native run on `ubuntu-latest`: `npm ci`, install
+  Chromium, run the suite, then generate the Allure report and publish it to the
+  `gh-pages` branch (`peaceiris/actions-gh-pages`). Prior history is pulled from
+  `gh-pages` first, so the trend graph accumulates across runs. Raw
+  `allure-results` and failure traces/screenshots/videos upload as artifacts.
+- **`playwright-docker.yml`** — same suite via the `Dockerfile`, producing a
+  single-file Allure report uploaded as an artifact.

@@ -23,3 +23,8 @@ npm-debug.log*
 Thumbs.db
 .idea/
 .vscode/
+
+# AI
+.agents/
+.claude/
+CLAUDE.md
