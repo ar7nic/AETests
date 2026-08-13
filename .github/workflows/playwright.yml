@@ -7,6 +7,9 @@ on:
   #   branches: [main, master]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   test:
     name: E2E (Chromium)
@@ -34,20 +37,55 @@ jobs:
         env:
           CI: true
 
+      - name: Check for existing gh-pages
+        if: ${{ !cancelled() }}
+        id: ghpages
+        run: |
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Load published report (for Allure history)
+        if: ${{ !cancelled() && steps.ghpages.outputs.exists == 'true' }}
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Generate Allure report
+        if: ${{ !cancelled() }}
+        run: |
+          if [ -d gh-pages/history ]; then
+            mkdir -p allure-results/history
+            cp -r gh-pages/history/* allure-results/history/
+          fi
+          npx allure generate allure-results --clean -o allure-report
+
+      - name: Publish Allure report to gh-pages
+        if: ${{ !cancelled() }}
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-report
+
       - name: Upload Allure results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: allure-results
-          path: allure-results
-          retention-days: 14
+          name: allure-results-${{ github.run_id }}
+          path: allure-results/
+          retention-days: 30
 
-      - name: Upload test artifacts (HTML report, traces, screenshots)
-        if: ${{ !cancelled() }}
+      - name: Upload debug artifacts
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-artifacts
+          name: debug-${{ github.run_id }}
           path: |
-            playwright-report
-            test-results
-          retention-days: 14
+            test-results/**/trace.zip
+            test-results/**/*.png
+            test-results/**/*.webm
+          retention-days: 7
+          if-no-files-found: ignore
