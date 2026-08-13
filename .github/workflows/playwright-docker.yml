@@ -1,0 +1,40 @@
+name: Playwright Tests (Docker)
+
+on:
+  # push:
+  #   branches: [main, master]
+  # pull_request:
+  #   branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: E2E (Chromium) - Docker
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t aetests .
+
+      - name: Run Playwright tests in container
+        run: docker run --rm -v ${{ github.workspace }}/allure-results:/app/allure-results aetests
+
+      - name: Upload Allure results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-docker
+          path: allure-results
+          retention-days: 14
+
+      - name: Upload test artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts-docker
+          path: test-results
+          retention-days: 14

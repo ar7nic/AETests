@@ -1,0 +1,17 @@
+services:
+  tests:
+    build: .
+    image: aetests
+    volumes:
+      - ./allure-results:/app/allure-results
+
+  report:
+    image: aetests
+    volumes:
+      - ./allure-results:/app/allure-results
+      - ./allure-report:/app/allure-report
+    command: sh -c "npx allure generate allure-results -o allure-report --clean && npx --yes http-server allure-report -p 9323"
+    ports:
+      - "9323:9323"
+    depends_on:
+      - tests
