@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import { env } from './src/config/env';
+import * as os from 'node:os';
 
 /**
  * Centralised Playwright configuration.
@@ -38,7 +39,17 @@ export default defineConfig({
   // NOTE: never override this with a CLI `--reporter=` flag (it disables Allure).
   reporter: [
     ['list'],
-    ['allure-playwright', { resultsDir: 'allure-results', detail: true }],
+    ['allure-playwright',
+    {
+      resultsDir: 'allure-results',
+      detail: true,
+      suiteTitle: true,
+      environmentInfo: {
+        OS: os.platform(),
+        Node: process.version,
+        Environment: process.env.TEST_ENV || 'local',
+      },
+    }],
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
   ],
 
